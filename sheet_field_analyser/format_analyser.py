@@ -12,7 +12,7 @@ from langchain_core.language_models import BaseChatModel
 from sheet_data_analyser import test_data
 
 load_dotenv()
-log = logging.getLogger('prompt_generator')
+log = logging.getLogger('sheet_field_analyser')
 log.setLevel(logging.DEBUG)
 
 
