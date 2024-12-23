@@ -34,13 +34,10 @@ def output_list_formatter(response: str):
 def format_analysis(sheet: str, lang: Language, llm: BaseChatModel) -> dict:
     prompt = json.dumps({
         'objective': '根据以下<sheet>所示表格，捕获每个表字段的特征，并为每个表字段生成能够全面总结其特征的详细描述，你的输出类型为<JSON>',
-        'hint_for_entity_recognition': '某些字段中存在某些实体, 你需要识别出这些实体并列举实体的已知取值范围(选择范围, 已知值集), '
-                                       '对于取值范围(选择范围, 已知值集)受限的实体, 你需要在该字段的描述中准确列出所有已知的取值, '
-                                       '字段中的实体取值范围(选择范围, 已知值集)使用 "<entity_name> ∈ [value_1, value_2, value_n, ...]" 表示.'
-                                       '实体可能包括: 状态、场景、角色、事件、风险等级...',
-        'hint': '某些字段中存在某些特定域值, 你需要关注特定域值的取值范围(选择范围, 已知值集), 对于取值范围(选择范围, 已知值集)受限的特定域值, '
-                '你需要在该字段的描述中准确列出所有特定域值的已知取值, '
-                '字段中特定域值的取值范围(选择范围, 已知值集)使用 "<variable_name> ∈ [value_1, value_2, value_n, ...]" 表示',
+        'hint_for_entity_recognition': '某些字段中存在某些隐含的变量, 你需要准确识别或挖掘出这些隐含变量并列举其已知取值范围(选择范围, 已知值集), '
+                                       '对于取值范围(选择范围, 已知值集)受限的变量, 你需要在该字段的描述中准确列出所有已知的取值, '
+                                       '字段中的变量取值范围(选择范围, 已知值集)使用 "<variable_name> ∈ [value_1, value_2, value_n, ...]" 表示.'
+                                       '隐含变量可能包括: 车辆状态、交通场景、交通参与者、事件、风险等级...',
         'sheet': sheet,
         'output_format': {
             'field_1': '<description_for_field_1>',
@@ -62,15 +59,14 @@ def update_format_analysis(fields_description_1: dict, fields_description_2: dic
         'objective': [
             {
                 'step_1': '比较<fields_description_1>与<fields_description_2>之间的差别, '
-                          '并分别捕获字段中的实体取值范围(选择范围, 已知值集), 实体可能包括: 状态、场景、角色、事件、风险等级...',
+                          '并逐个捕获字段中的隐含变量取值范围(选择范围, 已知值集), 隐含变量可能包括: 车辆状态、交通场景、交通参与者、事件、风险等级...',
                 'outputs': 'differences(markdown_formatted): <differences_between_fields_description_1_and_2>'
             },
             {
                 'step_2': '合并<fields_description_1>与<fields_description_2>之间的字段描述差异和'
-                          '字段中的实体取值范围(选择范围, 已知值集), 生成<new_fields_description>',
-                'hint_for_step_2': '除了字段描述差异, 字段取值范围(选择范围, 已知值集)的合并也同样重要, '
-                                   '字段中的实体或特定域值的取值范围(选择范围, 已知值集)'
-                                   '使用 "<entity/variable_name> ∈ [value_1, value_2, value_n, ...]" 表示',
+                          '字段中的隐含变量取值范围(选择范围, 已知值集, 使用 "<variable_name> ∈ [value_1, value_2, value_n, ...]" 表示), '
+                          '生成<new_fields_description>',
+                'hint_for_step_2': '除了字段描述差异, 字段内的隐含变量的取值范围(选择范围, 已知值集)的合并也同样重要',
                 'outputs': 'new_fields_description: ```json{...}```'
             }
         ],
@@ -144,8 +140,6 @@ def generate(context: str, output_descr: dict, llm: BaseChatModel) -> dict:
 
 
 if __name__ == '__main__':
-    # _test_data = test_data[:2]
-    _test_data = [{'功能ID': 'FUN_0', '功能描述': '随速助力: 根据驾驶员输入的方向盘扭矩大小和车速大小，ECU计算目标助力电流以控制电机运行，实现基本助力功能。', 'HAZOP引导词': 'More', '失效ID': 'FUN_0_FM01', '功能失效描述': '在车辆低速行驶时，由于传感器误读或软件错误，随速助力功能误认为车辆处于高速状态而提供过大的助力。', '失效的影响': '可能导致驾驶员感觉转向过于轻便，影响对车辆的控制，特别是在需要精确操控的情况下，如停车或避障，增加了发生事故的风险。', '整车危害行为': '非预期转向'}, {'功能ID': 'FUN_1', '功能描述': '主动回正: 通过方向盘转角信号主动拉方向盘回中心，提高方向盘返回功能，并且方向盘回正速度可控。', 'HAZOP引导词': 'Less', '失效ID': 'FUN_1_FM01', '功能失效描述': '在高速行驶时，主动回正功能未能提供足够的回正扭矩，导致方向盘无法有效回正。', '失效的影响': '驾驶员可能需要额外的力量来手动回正方向盘，增加驾驶疲劳，降低驾驶安全性。', '整车危害行为': '转向能力丧失'}, {'功能ID': 'FUN_2', '功能描述': '软止点保护: 在驾驶员将方向盘转到极限位置时，降低驱动电流输出，减少助力，保护电机与机械结构。', 'HAZOP引导词': 'Omission', '失效ID': 'FUN_2_FM01', '功能失效描述': '软止点保护功能未能在方向盘达到极限位置时及时降低助力，导致电机过载。', '失效的影响': '可能导致电机过热或损坏，影响系统的长期可靠性和安全性。', '整车危害行为': '转向卡滞'}]
     _data = []
     for _test_data in data:
         _data.append(str(_test_data))
