@@ -143,7 +143,7 @@ if __name__ == '__main__':
     _data = []
     for _test_data in data:
         _data.append(str(_test_data))
-    _format = peek_format_from_xls('../static/hazard_analysis.xlsx', lang=Language.Chinese)
+    _format = peek_format_from_xls('../static/function_disable.xlsx', lang=Language.Chinese)
     pprint(_format)
-    # result = generate(str(_data), output_descr=_format, llm=get_openai_model())
-    # pprint(result)
+    result = generate(str(_data), output_descr=_format, llm=get_openai_model())
+    pprint(result)
