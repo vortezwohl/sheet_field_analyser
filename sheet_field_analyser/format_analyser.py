@@ -9,7 +9,7 @@ from ceo import get_openai_model
 from dotenv import load_dotenv
 from langchain_core.language_models import BaseChatModel
 
-from sheet_data_analyser import test_data
+from test_input.function_data import data
 
 load_dotenv()
 log = logging.getLogger('sheet_field_analyser')
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     # _test_data = test_data[:2]
     _test_data = [{'功能ID': 'FUN_0', '功能描述': '随速助力: 根据驾驶员输入的方向盘扭矩大小和车速大小，ECU计算目标助力电流以控制电机运行，实现基本助力功能。', 'HAZOP引导词': 'More', '失效ID': 'FUN_0_FM01', '功能失效描述': '在车辆低速行驶时，由于传感器误读或软件错误，随速助力功能误认为车辆处于高速状态而提供过大的助力。', '失效的影响': '可能导致驾驶员感觉转向过于轻便，影响对车辆的控制，特别是在需要精确操控的情况下，如停车或避障，增加了发生事故的风险。', '整车危害行为': '非预期转向'}, {'功能ID': 'FUN_1', '功能描述': '主动回正: 通过方向盘转角信号主动拉方向盘回中心，提高方向盘返回功能，并且方向盘回正速度可控。', 'HAZOP引导词': 'Less', '失效ID': 'FUN_1_FM01', '功能失效描述': '在高速行驶时，主动回正功能未能提供足够的回正扭矩，导致方向盘无法有效回正。', '失效的影响': '驾驶员可能需要额外的力量来手动回正方向盘，增加驾驶疲劳，降低驾驶安全性。', '整车危害行为': '转向能力丧失'}, {'功能ID': 'FUN_2', '功能描述': '软止点保护: 在驾驶员将方向盘转到极限位置时，降低驱动电流输出，减少助力，保护电机与机械结构。', 'HAZOP引导词': 'Omission', '失效ID': 'FUN_2_FM01', '功能失效描述': '软止点保护功能未能在方向盘达到极限位置时及时降低助力，导致电机过载。', '失效的影响': '可能导致电机过热或损坏，影响系统的长期可靠性和安全性。', '整车危害行为': '转向卡滞'}]
     _data = []
-    for _test_data in test_data:
+    for _test_data in data:
         _data.append(str(_test_data))
     _format = peek_format_from_xls('../static/hazard_analysis.xlsx', lang=Language.Chinese)
     pprint(_format)
