@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 from langchain_core.language_models import BaseChatModel
 
 from test_input.function_data import data
+from sheet_field_analyser import logger as log
 
 load_dotenv()
-log = logging.getLogger('sheet_field_analyser')
 log.setLevel(logging.DEBUG)
 
 
