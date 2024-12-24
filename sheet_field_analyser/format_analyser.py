@@ -9,7 +9,7 @@ from ceo import get_openai_model
 from dotenv import load_dotenv
 from langchain_core.language_models import BaseChatModel
 
-from test_input.function_data import data
+from test_input.aeb_function_data import data
 from sheet_field_analyser import logger as log
 
 load_dotenv()
@@ -83,9 +83,7 @@ def update_format_analysis(fields_description_1: dict, fields_description_2: dic
         'hint_for_language': '你所输出的语言取决于<output_language>所规定的语言，请你给出对应语言的输出'
     }, ensure_ascii=False)
     log.debug(f'update_format_analysis_prompt: {prompt}')
-    content = llm.invoke(prompt).content
-    print('迭代:', content)
-    _result = output_dict_formatter(content)
+    _result = output_dict_formatter(llm.invoke(prompt).content)
     log.debug(f'update_format_analysis_response: {_result}')
     return _result
 
@@ -93,7 +91,7 @@ def update_format_analysis(fields_description_1: dict, fields_description_2: dic
 def peek_format_from_xls(
         file: str,
         lang: Language = Language.English,
-        batch_size: int = 16,
+        batch_size: int = 8,
         llm: BaseChatModel = get_openai_model()
 ) -> dict:
     if 'xls' not in file[file.rfind('.'):]:
@@ -124,8 +122,9 @@ def generate(context: str, output_descr: dict, llm: BaseChatModel) -> dict:
     prompt = json.dumps({
         'context': context,
         'objective': '你需要依据<context>中给出的参考资料, '
-                     '遵循<output_description.field_description>给出的规则, '
+                     '遵循<output_description.field_description>给出的字段描述, '
                      '对<output_description.fields>进行填充生成.',
+        'hint': '对于列出了隐含变量取值范围的字段, 你需要充分考虑每一种取值. 隐含变量可能包括: 车辆状态、交通场景、交通参与者、事件、风险等级...',
         'output_format': 'A list of JSON objects describing the functional disabilities analysis',
         'output_description': {
             'fields': output_descr['fields'],
